@@ -1,12 +1,11 @@
-from multiprocessing import managers
 from django.forms import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.db import transaction
 
-from forms_app.serializers import FormTemplateSerializer, FormFieldSerializer
-from forms_app.models import FormTemplate, FormField
+from forms_app.serializers import FormTemplateSerializer, FormFieldSerializer, FormEntrySerializer, FormFieldAnswerSerializer
+from forms_app.models import FormTemplate, FormField, FormEntry, FormFieldAnswer
 
 class form_template(APIView):
 
@@ -77,7 +76,6 @@ class form_template(APIView):
         form_template.delete()
         return Response(data={"Form Template Deleted!"}, status=status.HTTP_200_OK)
 
-
 class form_templates_list(APIView):
 
     def get(self, request):
@@ -111,6 +109,86 @@ class form_templates_list(APIView):
         except Exception as e:
             return Response(data={"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
 
+class form_entry(APIView):
 
+    def get(self, request, form_entry_id):
+        try:
+            form_entry = FormEntry.objects.get(form_entry_id=form_entry_id)
+        except FormEntry.DoesNotExist:
+            return Response(data={"erorr": "Form Entry Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Getting form entry field answers
+        field_data = {}
+        fields_answers = form_entry.form_answers.all()
+        for field_answer in fields_answers:
+            curr_field_name = field_answer.form_field.field_name
+            curr_field_answer = field_answer.answer
+            field_data[curr_field_name] = curr_field_answer
+        
+        # Making combined data
+        data = {
+            "form_entry_id": form_entry_id,
+            "form_name": form_entry.form_template.form_name,
+            "form_field_answers": field_data
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
+
+class form_entries_list(APIView):
+
+    def get(self, request, form_template_id):
+        try:
+            form_template = FormTemplate.objects.get(form_template_id=form_template_id)
+        except FormTemplate.DoesNotExist:
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+        
+        form_entries = form_template.form_entries.all()
+        serializers = FormEntrySerializer(form_entries, many=True)
+        return Response(data=serializers.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, form_template_id):
+        try:
+            form_template = FormTemplate.objects.get(form_template_id=form_template_id)
+        except FormTemplate.DoesNotExist:
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data
+        try:
+            # Getting form entry answers
+            form_field_answers = data.get("form_field_answers")
+            # Making a Form Entry Instance
+            serializer = FormEntrySerializer(data={"form_template": form_template_id})
+            if(serializer.is_valid()):
+                serializer.save()
+                form_entry = FormEntry.objects.get(form_entry_id=serializer.data.get("form_entry_id"))
+            else:
+                return Response(data={"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
+            # Making the answers entries
+            data = []
+            for curr_ans in form_field_answers:
+                for form_field_name, form_field_answer in curr_ans.items():
+                    try:
+                        # Getting the respective field_id corresponding to this curr_form_field
+                        form_field = FormField.objects.get(field_name=form_field_name, form_template=form_template_id)
+                        data.append({
+                            "answer": form_field_answer,
+                            "form_entry": form_entry.form_entry_id,
+                            "form_field": form_field.field_id
+                        })
+                    except Exception as e:
+                        # Deleting the newly created form entry and returning invalid data
+                        form_entry.delete()
+                        return Response(data={"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Saving the answers
+            serializers = FormFieldAnswerSerializer(data=data, many=True)
+            if(serializers.is_valid()):
+                serializers.save()
+                return Response(data="Form Entry Created Successfully", status=status.HTTP_201_CREATED)
+            
+            # Deleting the newly created form entry and returning invalid data
+            form_entry.delete()
+            return Response(data={"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response(data={"error": "Invalid Data"}, status=status.HTTP_400_BAD_REQUEST)
 

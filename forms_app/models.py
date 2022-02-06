@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 class FormTemplate(models.Model):
-    form_id = models.BigAutoField(primary_key=True, editable=False)
+    form_template_id = models.BigAutoField(primary_key=True, editable=False)
     form_name = models.CharField(max_length=100)
 
 class FormField(models.Model):

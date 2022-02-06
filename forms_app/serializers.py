@@ -5,7 +5,7 @@ from forms_app.models import FormTemplate, FormField
 class FormTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormTemplate
-        fields = ['form_id', 'form_name']
+        fields = ['form_template_id', 'form_name']
 
 class FormFieldSerializer(serializers.ModelSerializer):
     class Meta:

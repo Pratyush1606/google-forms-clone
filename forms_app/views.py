@@ -13,7 +13,7 @@ class form_template(APIView):
         try:
             form_template = FormTemplate.objects.get(form_template_id=form_template_id)
         except FormTemplate.DoesNotExist:
-            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
 
         form_fields = form_template.form_fields.all()
         form_fields_serializers = FormFieldSerializer(form_fields, many=True)
@@ -28,7 +28,7 @@ class form_template(APIView):
         try:
             form_template = FormTemplate.objects.get(form_template_id=form_template_id)
         except FormTemplate.DoesNotExist:
-            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
 
         data = request.data
         try:
@@ -71,7 +71,7 @@ class form_template(APIView):
         try:
             form_template = FormTemplate.objects.get(form_template_id=form_template_id)
         except FormTemplate.DoesNotExist:
-            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
         
         form_template.delete()
         return Response(data={"Form Template Deleted!"}, status=status.HTTP_200_OK)
@@ -115,7 +115,7 @@ class form_entry(APIView):
         try:
             form_entry = FormEntry.objects.get(form_entry_id=form_entry_id)
         except FormEntry.DoesNotExist:
-            return Response(data={"erorr": "Form Entry Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Entry Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
 
         # Getting form entry field answers
         field_data = {}
@@ -139,7 +139,7 @@ class form_entries_list(APIView):
         try:
             form_template = FormTemplate.objects.get(form_template_id=form_template_id)
         except FormTemplate.DoesNotExist:
-            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
         
         form_entries = form_template.form_entries.all()
         serializers = FormEntrySerializer(form_entries, many=True)
@@ -149,7 +149,7 @@ class form_entries_list(APIView):
         try:
             form_template = FormTemplate.objects.get(form_template_id=form_template_id)
         except FormTemplate.DoesNotExist:
-            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"erorr": "Form Templates Doesn't Exist :("}, status=status.HTTP_404_NOT_FOUND)
         
         data = request.data
         try:
